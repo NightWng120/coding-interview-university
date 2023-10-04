@@ -11,8 +11,7 @@ typedef struct VectorInt{
 }VectorInt;
 
 VectorInt * new(int size){
-	VectorInt newInit;
-	VectorInt * new = &newInit;
+	VectorInt * new = malloc(sizeof(VectorInt));
 	if(size > 0){
 		new->size = 0;
 		new->capacity = size;
@@ -50,28 +49,38 @@ VectorInt * push(VectorInt * vec, int index, int data){
 			vec->size+=1;
 			int * newArr = malloc(vec->capacity * sizeof(int));
 			int i = 0;
-			for(i = 0; i < (vec->size - index); i++){
+			for(i = 0; i < index; i++){
 				newArr[i] = vec->start[i];
+				printf("Start element #%d is %d\n", i, newArr[i]);
 			}
+			printf("Start element #%d is %d\n", i, newArr[i]);
 			newArr[i] = data;
 			for(int j = i + 1; j < vec->size; j++){
-				newArr[i] = vec->start[i];
+				newArr[j] = vec->start[j];
+				printf("Start element #%d is %d\n", j, newArr[j]);
 			}
 			vec->start = newArr;
 		}
-		else{
+		else if(index < vec->capacity){
 			vec->size+=1;
 			vec->capacity += 5;
 			int * newArr = malloc(vec->capacity * sizeof(int));
 			int i = 0;
-			for(i = 0; i < (vec->size - index); i++){
+			for(i = 0; i < index; i++){
 				newArr[i] = vec->start[i];
+				printf("Start element #%d is %d\n", i, newArr[i]);
 			}
 			newArr[i] = data;
+			printf("Start element #%d is %d\n", i, newArr[i]);
 			for(int j = i + 1; j < vec->size; j++){
-				newArr[i] = vec->start[i];
+				newArr[j] = vec->start[j - 1];
+				printf("Start element #%d is %d\n", j, newArr[j]);
 			}
 			vec->start = newArr;
+		}
+		else{
+			printf("Invalid push index %d\n", index);
+			return vec;
 		}
 	}
 	return vec;
@@ -104,7 +113,7 @@ VectorInt * addFront(VectorInt * vec, int data){
 		int i = 0;
 		newArr[0] = data;
 		for(i = 1; i < vec->size; i++){
-			newArr[i] = vec->start[i];
+			newArr[i] = vec->start[i - 1];
 		}
 		free(vec->start);
 		vec->start = newArr;
@@ -116,7 +125,7 @@ VectorInt * addFront(VectorInt * vec, int data){
 		int i = 0;
 		newArr[0] = data;
 		for(i = 1; i < vec->size; i++){
-			newArr[i] = vec->start[i];
+			newArr[i] = vec->start[i - 1];
 		}
 		free(vec->start);
 		vec->start = newArr;
@@ -125,35 +134,6 @@ VectorInt * addFront(VectorInt * vec, int data){
 }
 
 void printVec(VectorInt * vector, int size){
-}
-
-
-int main(){
-	VectorInt * vector = new(4);
-	int size = 4;
-	vector = addBack(vector, 6);
-	vector = addBack(vector, 7);
-	vector = addBack(vector, 8);
-	vector = addBack(vector, 9);
-
-	vector->size = 4;
-	printf("Current size: %d\n", vector->size);
-	printf("[");
-	for(int i = 0; i < vector->size; i++){
-		if(i + 1 == vector->size)
-			printf(", %d]", vector->start[i]);
-		else if(i == 0)
-			printf("%d", vector->start[i]);
-		else{
-			printf(", %d", vector->start[i]);
-		}
-	}
-	printf("\n");
-	fflush(stdout);
-
-	insert(vector, 2, 5);
-	vector->size = 5;
-	printf("Current size: %d\n", vector->size);
 	printf("[");
 	for(int i = 0; i < vector->size; i++){
 		if(i + 1 == vector->size){
@@ -166,7 +146,27 @@ int main(){
 		}
 	}
 	printf("\n");
-	fflush(stdout);
+}
 
-	printf("At index 2: %d\n", get(vector, 2));
+
+int main(){
+	VectorInt * vector = new(5);
+	addBack(vector, 6);
+	addBack(vector, 7);
+	addBack(vector, 8);
+	addBack(vector, 9);
+	addBack(vector, 11);
+
+	printf("Current size: %d\n", vector->size);
+
+	printVec(vector, vector->size);
+
+	push(vector, 2, 5);
+	addFront(vector, 22);
+
+	printf("Current size: %d\n", vector->size);
+
+	printVec(vector, vector->size);
+
+	printf("At index 5: %d\n", get(vector, 5));
 }
