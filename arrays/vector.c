@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct VectorInt{
 	int data;
@@ -34,16 +35,15 @@ int get(VectorInt * vec, int index){
 		return NULL;
 }
 
-VectorInt * insert(VectorInt * vec, int index, int data){
+void insert(VectorInt * vec, int index, int data){
 	if(index < vec->size)
 		vec->start[index] = data;
 	else{
 		printf("Invalid index value\n");
 	}
-	return vec;
 }
 
-VectorInt * push(VectorInt * vec, int index, int data){
+void push(VectorInt * vec, int index, int data){
 	if(index < vec->size){
 		if(vec->size + 1 <= vec->capacity){
 			vec->size+=1;
@@ -56,9 +56,10 @@ VectorInt * push(VectorInt * vec, int index, int data){
 			printf("Start element #%d is %d\n", i, newArr[i]);
 			newArr[i] = data;
 			for(int j = i + 1; j < vec->size; j++){
-				newArr[j] = vec->start[j];
+				newArr[j] = vec->start[j - 1];
 				printf("Start element #%d is %d\n", j, newArr[j]);
 			}
+			free(vec->start);
 			vec->start = newArr;
 		}
 		else if(index < vec->capacity){
@@ -76,22 +77,20 @@ VectorInt * push(VectorInt * vec, int index, int data){
 				newArr[j] = vec->start[j - 1];
 				printf("Start element #%d is %d\n", j, newArr[j]);
 			}
+			free(vec->start);
 			vec->start = newArr;
 		}
 		else{
 			printf("Invalid push index %d\n", index);
-			return vec;
 		}
 	}
-	return vec;
 }
 
 
-VectorInt * addBack(VectorInt * vec, int data){
-	int buffer = vec->size;
+void addBack(VectorInt * vec, int data){
 	if(vec->size+1 <= vec->capacity){
-		vec->start[buffer] = data;
-		vec->size = buffer + 1;
+		vec->start[vec->size] = data;
+		vec->size += 1;
 	}
 	else{
 		vec->capacity += 5;
@@ -103,10 +102,11 @@ VectorInt * addBack(VectorInt * vec, int data){
 		newArr[i] = data;
 		free(vec->start);
 		vec->start = newArr;
+		vec->size += 1;
 	}
 }
 
-VectorInt * addFront(VectorInt * vec, int data){
+void addFront(VectorInt * vec, int data){
 	if(vec->size + 1 <= vec->capacity){
 		vec->size += 1;
 		int * newArr = malloc(vec->capacity * sizeof(int));
@@ -130,7 +130,65 @@ VectorInt * addFront(VectorInt * vec, int data){
 		free(vec->start);
 		vec->start = newArr;
 	}
-	return vec;
+}
+
+void delete(VectorInt * vec, int index){
+	int i = 0;
+	int * newArr = malloc(vec->capacity * sizeof(int));
+	if(index < vec->size){
+		for(i = 0; i < index; i++){
+			newArr[i] = vec->start[i];
+		}
+		for(int j = i + 1; j < vec->size; j++){
+			newArr[j] = vec->start[j + 1];
+		}
+		free(vec->start);
+		vec->start = newArr;
+		vec->size -= 1;
+	}
+	else{
+		printf("Delete index is invalid\n");
+	}
+}
+
+void removeElements(VectorInt * vec, int item){
+	int * newArr = malloc(vec->capacity * sizeof(VectorInt));
+	int size = vec->size;
+	int index = 0;
+	for(int i = 0; i < vec->size; i++){
+		if(vec->start[i] == item){
+			printf("Removed element %d at index %d\n", vec->start[i], i);
+			size -= 1;
+			continue;
+		}
+		else{
+			printf("Added element %d to index %d\n", vec->start[i], index);
+			newArr[index] = vec->start[i];
+			index += 1;
+		}
+	}
+	free(vec->start);
+	vec->start = newArr;
+	vec->size = size;
+}
+
+int find(VectorInt * vec, int item){
+	for(int i = 0; i < vec->size; i++){
+		if(vec->start[i] == item)
+			return i;
+	}
+}
+
+int * findAll(VectorInt * vec, int item){
+	int * items = malloc(vec->size * sizeof(int));
+	int index = 0;
+	for(int i = 0; i < vec->size; i++){
+		if(vec->start[i] == item){
+			items[index] = i;
+			index+=1;
+		}
+	}
+	return items;
 }
 
 void printVec(VectorInt * vector, int size){
@@ -148,14 +206,44 @@ void printVec(VectorInt * vector, int size){
 	printf("\n");
 }
 
+void printArray(int * array, int size){
+	printf("[");
+	for(int i = 0; i < size; i++){
+		if(i + 1 == size){
+			printf("%d", array[i]);
+			break;
+		}
+		printf("%d, ", array[i]);
+	}
+	printf("]\n");
+}
+
+int size(VectorInt * vec){
+	return vec->size;
+}
+
+int capacity(VectorInt * vec){
+	return vec->capacity;
+}
+
+bool isEmpty(VectorInt * vec){
+	if(vec->size > 0){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
 
 int main(){
 	VectorInt * vector = new(5);
+	addBack(vector, 11);
+	addBack(vector, 11);
 	addBack(vector, 6);
 	addBack(vector, 7);
 	addBack(vector, 8);
 	addBack(vector, 9);
-	addBack(vector, 11);
 
 	printf("Current size: %d\n", vector->size);
 
@@ -169,4 +257,19 @@ int main(){
 	printVec(vector, vector->size);
 
 	printf("At index 5: %d\n", get(vector, 5));
+
+	delete(vector, 5);
+
+	printVec(vector, vector->size);
+
+	printf("Indeces of elements with value 11\n");
+	printArray(findAll(vector, 11), 2);
+
+	removeElements(vector, 11);
+
+	printVec(vector, vector->size);
+
+	printf("Index of 9: %d\n", find(vector, 9));
+
+
 }
